@@ -159,16 +159,11 @@ class MainWindow(Gtk.ApplicationWindow):
         for i in range(18):
             if self.genre_check[i].get_active():
                 selected_genres.append(self.genre_check[i].get_label())
-                # print the genre
-                print(self.genre_check[i].get_label())
         
         # Create array with selected years
         selected_years = []
         selected_years.append(self.dropdown1.get_selected_item().get_string())
         selected_years.append(self.dropdown2.get_selected_item().get_string())
-        #print years
-        print(selected_years[0])
-        print(selected_years[1])
 
         get_anime(genre_list = selected_genres , years = selected_years, vote = self.vote_slider.get_value())
 # ----------------------------------------------------------------------------------------------------------------------
