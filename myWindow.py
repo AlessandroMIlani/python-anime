@@ -1,14 +1,12 @@
 import random
 from datetime import date
-# Load Gtk
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Gio, GLib  
+from myFunctions import *
 
 
-# Anilist API
-from AnilistPython import Anilist
 
 # ------------------------------------------------------------------------------
 
@@ -155,8 +153,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.about.show()
 
     def on_confirm_clicked(self, widget):
-        # Create anilist object
-        anilist = Anilist()
         # Create an array with selected genres
         selected_genres = []
         random_anime = []
@@ -174,20 +170,5 @@ class MainWindow(Gtk.ApplicationWindow):
         print(selected_years[0])
         print(selected_years[1])
 
-
-
-        if selected_years[0] == selected_years[1] or selected_years[0] > selected_years[1]:
-            print("Error: invalid year range")
-            print("Years will not be considered as a filter")
-            random_anime = anilist.search_anime(genre=selected_genres, score=range(int(self.vote_slider.get_value()), 101))
-        else:
-            # Get random anime
-            random_anime = anilist.search_anime(genre=selected_genres, score=range(int(self.vote_slider.get_value()), 101), year=selected_years)
-        # if random_anime is empty, get another one
-        if len(random_anime) != 0:
-            picked = random.choice(random_anime)
-            anilist.print_anime_info(picked["name_english"])
-        else:
-            print("No anime found")
-
+        get_anime(genre_list = selected_genres , years = selected_years, vote = self.vote_slider.get_value())
 # ----------------------------------------------------------------------------------------------------------------------
