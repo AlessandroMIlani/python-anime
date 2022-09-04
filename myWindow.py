@@ -1,10 +1,13 @@
-import random
+from __future__ import print_function
 from datetime import date
+from json import load
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gio, GLib  
+from gi.repository import Gtk, Adw, Gio, GLib, GdkPixbuf
 from myFunctions import *
+import requests
+
 
 
 
@@ -41,7 +44,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         # Array with anime genres
         genre_list = ["Action", "Adventure", "Comedy", "Drama", "Ecchi", "Fantasy", 
-                        "Horror", "Shoujo", "Mecha", "Music", "Mystery", "Psychological", 
+                        "Horror", "Mahou Shoujo", "Mecha", "Music", "Mystery", "Psychological", 
                         "Romance", "Sci-Fi", "Slice of Life", "Sports", "Supernatural", "Thriller"]
 
         # Create a Label
@@ -87,6 +90,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Create 2 dropdown for select a range of years
         self.year_grid = Gtk.Grid()
         self.box3.append(self.year_grid)
+        
         # Gtk.StringList with years from 1900 to 2022
         self.year_list = Gtk.StringList()
         for i in range(int(date.today().year)-1940 + 1):
@@ -101,11 +105,15 @@ class MainWindow(Gtk.ApplicationWindow):
         self.dropdown2.set_margin_start(20)
         self.dropdown2.set_size_request(200, -1)
         self.dropdown2.set_halign(Gtk.Align.START)
+        
         # add dropdown to grid
         self.year_grid.attach(self.year_label, 0, 0, 1, 1)
         self.year_grid.attach(self.dropdown1   , 0, 1, 1, 1)
         self.year_grid.attach(self.dropdown2   , 1, 1, 1, 1)
-
+        
+        #set default value
+        self.dropdown1.set_selected(int(date.today().year)-1962)
+        self.dropdown2.set_selected(int(date.today().year)-1940)
 
         # Create a Confirm button
         self.confirm_button = Gtk.Button(label="Confirm")
@@ -165,5 +173,57 @@ class MainWindow(Gtk.ApplicationWindow):
         selected_years.append(self.dropdown1.get_selected_item().get_string())
         selected_years.append(self.dropdown2.get_selected_item().get_string())
 
-        get_anime(genre_list = selected_genres , years = selected_years, vote = self.vote_slider.get_value())
+        anime = get_anime(genre_list = selected_genres , years = selected_years, vote = self.vote_slider.get_value())
+        
+        # Create a Dialog with anime info
+        self.dialog = DialogAnime(self, anime=anime)
+        self.dialog.set_transient_for(self)
+        self.dialog.show()
+        
+        #self.dialog.destroy()
+        
 # ----------------------------------------------------------------------------------------------------------------------
+
+class DialogAnime(Gtk.Dialog):
+    def __init__(self, parent, anime):
+        super().__init__(title=anime["name_romaji"], transient_for=parent)
+        #create ok button to close dialog
+        self.add_button("Ok", Gtk.ResponseType.OK)
+        
+        # Title label with anime name
+        label_title = Gtk.Label()
+        label_title.set_margin_top(20)
+        markup = get_font_markup('Noto Sans Regular 20', anime["name_romaji"])
+        label_title.set_markup(markup)
+        label_title.set_valign(Gtk.Align.CENTER)
+        
+        # Description label with anime description
+        desc = Gtk.Label(label=anime["desc"].split("<br>")[0])
+        # wrap label 
+        desc.set_wrap(True)
+        desc.set_max_width_chars(50)
+        desc.set_width_chars(50)
+        
+        #add image from url
+        cover_image = Gtk.Image()
+        response = requests.get(anime["cover_image"])
+        content = response.content
+        loader = GdkPixbuf.PixbufLoader()
+        loader.write_bytes(GLib.Bytes.new(content))
+        loader.close()
+        cover_image.set_from_pixbuf(loader.get_pixbuf())
+        #set image size
+        cover_image.set_size_request(230, 325)
+        
+        # Create a grid
+        grid = Gtk.Grid()
+        grid.set_column_spacing(10)
+        grid.attach(cover_image, 0, 0, 1, 2)
+        grid.attach(desc, 1, 0, 1, 1)
+        
+        self.set_default_size(150, 100)
+        box = self.get_content_area()
+        box.append(label_title)
+        box.append(grid)
+
+        self.show()
