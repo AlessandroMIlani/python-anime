@@ -191,70 +191,85 @@ class MainWindow(Gtk.ApplicationWindow):
 
 class DialogAnime(Gtk.Dialog):
     def __init__(self, parent, anime):
-        super().__init__(title=anime["name_romaji"], transient_for=parent)
-        #create ok button to close dialog
-        ok = self.add_button("Ok", Gtk.ResponseType.OK)
-        
-        # close dialog 
-        ok.connect("clicked", self.on_ok_clicked)
-        
-        # Title label with anime name
-        label_title = Gtk.Label()
-        label_title.set_margin_top(20)
-        markup = get_font_markup('Noto Sans Regular 20', anime["name_romaji"])
-        label_title.set_markup(markup)
-        label_title.set_valign(Gtk.Align.CENTER)
-        
-        # Description label with anime description
-        desc = Gtk.Label(label=anime["desc"].split("<br>")[0])
-        # wrap label 
-        desc.set_wrap(True)
-        desc.set_max_width_chars(50)
-        desc.set_width_chars(50)
-        
-        #add image from url
-        cover_image = Gtk.Image()
-        response = requests.get(anime["cover_image"])
-        content = response.content
-        loader = GdkPixbuf.PixbufLoader()
-        loader.write_bytes(GLib.Bytes.new(content))
-        loader.close()
-        cover_image.set_from_pixbuf(loader.get_pixbuf())
-        #set image size
-        cover_image.set_size_request(230, 345)
-        
-        # Grid with extra info
-        info_format = Gtk.Label(label="Format: " + anime["airing_format"])
-        info_format.set_halign(Gtk.Align.CENTER)
-        info_episodes = Gtk.Label(label="Episodes: " + str(anime["airing_episodes"]))
-        info_episodes.set_halign(Gtk.Align.CENTER)
-        info_status = Gtk.Label(label="Status: " + anime["airing_status"])
-        info_status.set_halign(Gtk.Align.CENTER)
-        info_score = Gtk.Label(label="Vote: " + str(anime["average_score"]))
-        info_score.set_halign(Gtk.Align.CENTER)
-        
-        info_grid = Gtk.Grid()
-        info_grid.attach(info_format, 0, 0, 1, 1)
-        info_grid.attach(info_episodes, 0, 1, 1, 1)
-        info_grid.attach(info_status, 1, 0, 1, 1)
-        info_grid.attach(info_score, 1, 1, 1, 1)
-        info_grid.set_column_spacing(10)
-        info_grid.set_halign(Gtk.Align.CENTER)
-        info_grid.set_margin_top(20)
-        
-        # Create a grid
-        grid = Gtk.Grid()
-        grid.set_column_spacing(10)
-        grid.set_margin_top(20)
-        grid.attach(cover_image, 0, 0, 1, 3)
-        grid.attach(desc, 1, 1, 1, 1)
-        grid.attach(info_grid, 1, 0, 1, 1)
-        
-        #self.set_default_size(150, 100)
-        box = self.get_content_area()
-        box.append(label_title)
-        box.append(grid)
-        self.show()
+        super().__init__(title="Rnadom", transient_for=parent)
+        if anime == None:
+            Gtk.Dialog.__init__(self, title="Anime not found", parent=parent, flags=0)
+            #create ok button to close dialog
+            ok = self.add_button("Ok", Gtk.ResponseType.OK)
+            ok.connect("clicked", self.on_ok_clicked)
+            
+            self.set_default_size(150, 100)
+            label = Gtk.Label()
+            markup = get_font_markup('Noto Sans Regular 20', 'Anime not found')
+            label.set_markup(markup)
+            label.set_halign(Gtk.Align.CENTER)
+            label.set_valign(Gtk.Align.CENTER)
+            box = self.get_content_area()
+            box.append(label)
+            self.show()
+            
+        else:
+            Gtk.Dialog.__init__(self, title=anime["romanji_title"], parent=parent, flags=0)
+            
+            #create ok button to close dialog
+            ok = self.add_button("Ok", Gtk.ResponseType.OK)
+            ok.connect("clicked", self.on_ok_clicked)
+            
+            # Title label with anime name
+            label_title = Gtk.Label()
+            label_title.set_margin_top(20)
+            markup = get_font_markup('Noto Sans Regular 20', anime["name_romaji"])
+            label_title.set_markup(markup)
+            label_title.set_valign(Gtk.Align.CENTER)
+            
+            # Description label with anime description
+            desc = Gtk.Label(label=anime["desc"].split("<br>")[0])
+            desc.set_wrap(True)
+            desc.set_max_width_chars(50)
+            desc.set_width_chars(50)
+            
+            #add image from url
+            cover_image = Gtk.Image()
+            response = requests.get(anime["cover_image"])
+            content = response.content
+            loader = GdkPixbuf.PixbufLoader()
+            loader.write_bytes(GLib.Bytes.new(content))
+            loader.close()
+            cover_image.set_from_pixbuf(loader.get_pixbuf())
+            cover_image.set_size_request(230, 345)
+            
+            # Grid with extra info
+            info_format = Gtk.Label(label="Format: " + anime["airing_format"])
+            info_format.set_halign(Gtk.Align.CENTER)
+            info_episodes = Gtk.Label(label="Episodes: " + str(anime["airing_episodes"]))
+            info_episodes.set_halign(Gtk.Align.CENTER)
+            info_status = Gtk.Label(label="Status: " + anime["airing_status"])
+            info_status.set_halign(Gtk.Align.CENTER)
+            info_score = Gtk.Label(label="Vote: " + str(anime["average_score"]))
+            info_score.set_halign(Gtk.Align.CENTER)
+            
+            info_grid = Gtk.Grid()
+            info_grid.attach(info_format, 0, 0, 1, 1)
+            info_grid.attach(info_episodes, 0, 1, 1, 1)
+            info_grid.attach(info_status, 1, 0, 1, 1)
+            info_grid.attach(info_score, 1, 1, 1, 1)
+            info_grid.set_column_spacing(10)
+            info_grid.set_halign(Gtk.Align.CENTER)
+            info_grid.set_margin_top(20)
+            
+            # Create a grid
+            grid = Gtk.Grid()
+            grid.set_column_spacing(10)
+            grid.set_margin_top(20)
+            grid.attach(cover_image, 0, 0, 1, 3)
+            grid.attach(desc, 1, 1, 1, 1)
+            grid.attach(info_grid, 1, 0, 1, 1)
+            
+            #self.set_default_size(150, 100)
+            box = self.get_content_area()
+            box.append(label_title)
+            box.append(grid)
+            self.show()
     
     def on_ok_clicked(self, widget):
         self.destroy()
