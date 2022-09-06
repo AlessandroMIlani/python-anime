@@ -9,4 +9,4 @@ With GUI written in a very bad gtk4
 - [X] Finish to implement the years filter
 - [X] Split the program into multiple files
 - [ ] Create a css file or organize widgets on a better way 
-- [ ] Create a pop-up Window to show all anime info and image cover
+- [X] Create a pop-up Window to show all anime info and image cover
