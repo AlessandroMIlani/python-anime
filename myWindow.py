@@ -1,5 +1,6 @@
 from __future__ import print_function
 from datetime import date
+from distutils.log import info
 from json import load
 import gi
 gi.require_version('Gtk', '4.0')
@@ -33,14 +34,10 @@ class MainWindow(Gtk.ApplicationWindow):
         # Creare box
         self.box1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.box3 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.box4 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
         # append box to window
         self.set_child(self.box1)  # Horizontal box to window
         self.box1.append(self.box2)  # Put vert box in that box
-        self.box1.append(self.box3)  # And another one, empty for now
-        self.box1.append(self.box4)  # And another one, empty for now
 
         # Array with anime genres
         genre_list = ["Action", "Adventure", "Comedy", "Drama", "Ecchi", "Fantasy", 
@@ -59,7 +56,9 @@ class MainWindow(Gtk.ApplicationWindow):
 
         # append checkboxes on a grid 6 x 3
         self.grid = Gtk.Grid()
+        self.grid.set_halign(Gtk.Align.CENTER)
         self.box2.append(self.grid)
+        
         self.grid.attach(self.label, 0, 0, 6, 1)
         for i in range(6):
             self.grid.attach(self.genre_check[i], i, 1, 1, 1)
@@ -69,7 +68,9 @@ class MainWindow(Gtk.ApplicationWindow):
             self.grid.attach(self.genre_check[i+12], i, 3, 1, 1)
 
         self.slider_grid = Gtk.Grid()
-        self.box3.append(self.slider_grid)
+        self.slider_grid.set_halign(Gtk.Align.CENTER)
+        self.box2.append(self.slider_grid)
+        
         # Create a Slider 0.0 to 10.0
         self.vote_slider = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 0.0, 100, 1)
         self.vote_slider.set_value_pos(Gtk.PositionType.BOTTOM)
@@ -86,10 +87,11 @@ class MainWindow(Gtk.ApplicationWindow):
         # Create a label for year
         self.year_label = Gtk.Label()
         self.year_label.set_text("Select the year range")
-
+        self.year_label.set_halign(Gtk.Align.CENTER)
         # Create 2 dropdown for select a range of years
         self.year_grid = Gtk.Grid()
-        self.box3.append(self.year_grid)
+        self.box2.append(self.year_grid)
+        self.year_grid.set_halign(Gtk.Align.CENTER)
         
         # Gtk.StringList with years from 1900 to 2022
         self.year_list = Gtk.StringList()
@@ -107,7 +109,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.dropdown2.set_halign(Gtk.Align.START)
         
         # add dropdown to grid
-        self.year_grid.attach(self.year_label, 0, 0, 1, 1)
+        self.year_grid.attach(self.year_label, 0, 0, 2, 1)
         self.year_grid.attach(self.dropdown1   , 0, 1, 1, 1)
         self.year_grid.attach(self.dropdown2   , 1, 1, 1, 1)
         
@@ -118,8 +120,11 @@ class MainWindow(Gtk.ApplicationWindow):
         # Create a Confirm button
         self.confirm_button = Gtk.Button(label="Confirm")
         self.confirm_button.connect("clicked", self.on_confirm_clicked)
-        self.box4.append(self.confirm_button)
-
+        self.confirm_button.set_margin_top(20)
+        self.confirm_button.set_halign(Gtk.Align.CENTER)
+        self.confirm_button.set_hexpand(False)
+        self.box2.append(self.confirm_button)
+        
         # Create a new menu
         menu = Gio.Menu.new()
 
@@ -188,7 +193,10 @@ class DialogAnime(Gtk.Dialog):
     def __init__(self, parent, anime):
         super().__init__(title=anime["name_romaji"], transient_for=parent)
         #create ok button to close dialog
-        self.add_button("Ok", Gtk.ResponseType.OK)
+        ok = self.add_button("Ok", Gtk.ResponseType.OK)
+        
+        # close dialog 
+        ok.connect("clicked", self.on_ok_clicked)
         
         # Title label with anime name
         label_title = Gtk.Label()
@@ -213,17 +221,40 @@ class DialogAnime(Gtk.Dialog):
         loader.close()
         cover_image.set_from_pixbuf(loader.get_pixbuf())
         #set image size
-        cover_image.set_size_request(230, 325)
+        cover_image.set_size_request(230, 345)
+        
+        # Grid with extra info
+        info_format = Gtk.Label(label="Format: " + anime["airing_format"])
+        info_format.set_halign(Gtk.Align.CENTER)
+        info_episodes = Gtk.Label(label="Episodes: " + str(anime["airing_episodes"]))
+        info_episodes.set_halign(Gtk.Align.CENTER)
+        info_status = Gtk.Label(label="Status: " + anime["airing_status"])
+        info_status.set_halign(Gtk.Align.CENTER)
+        info_score = Gtk.Label(label="Vote: " + str(anime["average_score"]))
+        info_score.set_halign(Gtk.Align.CENTER)
+        
+        info_grid = Gtk.Grid()
+        info_grid.attach(info_format, 0, 0, 1, 1)
+        info_grid.attach(info_episodes, 0, 1, 1, 1)
+        info_grid.attach(info_status, 1, 0, 1, 1)
+        info_grid.attach(info_score, 1, 1, 1, 1)
+        info_grid.set_column_spacing(10)
+        info_grid.set_halign(Gtk.Align.CENTER)
+        info_grid.set_margin_top(20)
         
         # Create a grid
         grid = Gtk.Grid()
         grid.set_column_spacing(10)
-        grid.attach(cover_image, 0, 0, 1, 2)
-        grid.attach(desc, 1, 0, 1, 1)
+        grid.set_margin_top(20)
+        grid.attach(cover_image, 0, 0, 1, 3)
+        grid.attach(desc, 1, 1, 1, 1)
+        grid.attach(info_grid, 1, 0, 1, 1)
         
-        self.set_default_size(150, 100)
+        #self.set_default_size(150, 100)
         box = self.get_content_area()
         box.append(label_title)
         box.append(grid)
-
         self.show()
+    
+    def on_ok_clicked(self, widget):
+        self.destroy()
